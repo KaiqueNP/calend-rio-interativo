@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calendário - KaiqueNP</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <header class="bg-green-600 text-white p-5 shadow-md">
+    <h1 class="text-3xl font-bold text-center">📅 Calendário Interativo - KaiqueNP</h1>
+  </header>
+
+  <main class="max-w-3xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-4">
+      <button onclick="changeMonth(-1)" class="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded">&lt;</button>
+      <h2 id="monthYear" class="text-xl font-semibold"></h2>
+      <button onclick="changeMonth(1)" class="bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded">&gt;</button>
+    </div>
+    <div id="calendarDays" class="grid grid-cols-7 gap-2"></div>
+  </main>
+
+  <script>
+    let currentDate = new Date();
+
+    function loadEvents() {
+      return JSON.parse(localStorage.getItem("calendarEvents") || "{}");
+    }
+
+    function saveEvents(events) {
+      localStorage.setItem("calendarEvents", JSON.stringify(events));
+    }
+
+    function renderCalendar() {
+      const daysContainer = document.getElementById("calendarDays");
+      const monthYear = document.getElementById("monthYear");
+      daysContainer.innerHTML = "";
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const events = loadEvents();
+
+      monthYear.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+
+      for (let i = 0; i < firstDay; i++) {
+        const emptyDiv = document.createElement("div");
+        daysContainer.appendChild(emptyDiv);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const div = document.createElement("div");
+        div.className = "border rounded p-2 h-24 relative bg-white shadow hover:shadow-md cursor-pointer";
+        div.innerHTML = `<div class='font-bold'>${day}</div>`;
+        const key = `${year}-${month}-${day}`;
+        if (events[key]) {
+          div.innerHTML += `<div class='text-xs text-green-700 mt-1'>📌 ${events[key]}</div>`;
+        }
+        div.onclick = () => {
+          const eventText = prompt("Digite o evento para o dia " + day);
+          if (eventText) {
+            events[key] = eventText;
+            saveEvents(events);
+            renderCalendar();
+          }
+        };
+        daysContainer.appendChild(div);
+      }
+    }
+
+    function changeMonth(diff) {
+      currentDate.setMonth(currentDate.getMonth() + diff);
+      renderCalendar();
+    }
+
+    renderCalendar();
+  </script>
+</body>
+</html>
